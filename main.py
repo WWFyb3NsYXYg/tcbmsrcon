@@ -3,11 +3,11 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher import FSMContext
-import logging
-import helper
-import keyboards
 from config import Configuration
 from mcrcon import MCRcon
+import logging
+import locale
+import helper
 
 config = Configuration.from_env()
 
@@ -36,54 +36,51 @@ class set_donate(StatesGroup):
 @dp.message_handler(commands='start')
 async def start(message: types.Message):
     if message.from_user.id in config.admins_list:
-        text = ('Привет, {}!\n'
-                'Я передам любые твои команды на сервер\n'
-                'Не стесняйся обращаться ко мне в чатах. Я удалю свой '
-                '@username из команды')
-        text = text.format(message.from_user.first_name)
-        return await message.answer(text, reply_markup=keyboards.menu_kb)
-    await message.answer('У тебя нет доступа для использования этого бота.')
+        text = locale.start_message_ok.format(message.from_user.first_name)
+        return await message.answer(text, reply_markup=helper.menu_kb)
+    await message.answer(locale.start_message_err)
 
 # -----------------------------------------------------------------------------------------------------------------------------------
 # -------------------------------------------------------- DONATE--------------------------------------------------------------------
 # -----------------------------------------------------------------------------------------------------------------------------------
 
 
-@dp.message_handler(Text(equals="Выдача доната 🍩"))
+@dp.message_handler(Text(equals=locale.get_donate_btn))
 async def with_puree(message: types.Message, state: FSMContext):
     if message.from_user.id in config.admins_list:
-        await message.answer(text="✍ Введите ник пользователя", reply_markup=keyboards.ext_kb)
+        await message.answer(text=locale.input_nick, reply_markup=helper.ext_kb)
         await state.set_state(set_donate.wait_nick)
 
 
 @dp.message_handler(state=set_donate.wait_nick)
 async def amount_set(message: types.Message, state: FSMContext):
-    if message.text == "Отмена ❌":
+    if message.text == locale.cancel_btn:
         await state.finish()
-        await message.answer(text="Действие отменено", reply_markup=keyboards.menu_kb)
+        await message.answer(text=locale.cancel_ok, reply_markup=helper.menu_kb)
     else:
         helper.temp_nick = message.text
-        await message.answer(text="Выберите донат 🗒️", reply_markup=keyboards.dn_kb)
+        helper.kbd_gen()
+        await message.answer(text=locale.choose_donate, reply_markup=helper.dn_kb)
         await state.set_state(set_donate.wait_donate_n)
 
 
 @dp.message_handler(state=set_donate.wait_donate_n)
 async def amount_set(message: types.Message, state: FSMContext):
-    if message.text == "Отмена ❌":
+    if message.text == locale.cancel_btn:
         await state.finish()
-        await message.answer(text="Действие отменено", reply_markup=keyboards.menu_kb)
+        await message.answer(text=locale.cancel_ok, reply_markup=helper.menu_kb)
     else:
         helper.temp_donate = message.text
-        dotate = helper.definition_butt()
-        if dotate == "err":
-            await message.answer(text="Неправильный ввод. Выберите донат ИЗ СПИСКА 🗒️", reply_markup=keyboards.dn_kb)
+        donate = helper.definition_butt()
+        if donate == "err":
+            await message.answer(text=locale.err_choose_donate, reply_markup=helper.dn_kb)
             await state.set_state(set_donate.wait_donate_n)
         else:
-            command = "lp user " + helper.temp_nick + " parent set " + dotate
+            command = "lp user " + helper.temp_nick + " parent set " + donate
             with MCRcon(config.rcon_host, config.rcon_pass, config.rcon_port) as mcr:
                 resp = mcr.command(command)
                 logger.info(resp)
-            await message.answer(text="Успех ✅", reply_markup=keyboards.menu_kb)
+            await message.answer(text=locale.success, reply_markup=helper.menu_kb)
             await state.finish()
 
 # -----------------------------------------------------------------------------------------------------------------------------------
@@ -91,29 +88,29 @@ async def amount_set(message: types.Message, state: FSMContext):
 # -----------------------------------------------------------------------------------------------------------------------------------
 
 
-@dp.message_handler(Text(equals="Выдача валюты игроку 💵"))
+@dp.message_handler(Text(equals=locale.issuance_currency_btn))
 async def with_puree(message: types.Message, state: FSMContext):
     if message.from_user.id in config.admins_list:
-        await message.answer(text="✍ Введите ник пользователя", reply_markup=keyboards.ext_kb)
+        await message.answer(text=locale.input_nick, reply_markup=helper.ext_kb)
         await state.set_state(set_donate.wait_nick_to_pay)
 
 
 @dp.message_handler(state=set_donate.wait_nick_to_pay)
 async def amount_set(message: types.Message, state: FSMContext):
-    if message.text == "Отмена ❌":
+    if message.text == locale.cancel_btn:
         await state.finish()
-        await message.answer(text="Действие отменено", reply_markup=keyboards.menu_kb)
+        await message.answer(text=locale.cancel_ok, reply_markup=helper.menu_kb)
     else:
         helper.temp_nick = message.text
-        await message.answer(text="Введите сумму пополнения 🤑", reply_markup=keyboards.ext_kb)
+        await message.answer(text=locale.input_amount, reply_markup=helper.ext_kb)
         await state.set_state(set_donate.wait_money)
 
 
 @dp.message_handler(state=set_donate.wait_money)
 async def amount_set(message: types.Message, state: FSMContext):
-    if message.text == "Отмена ❌":
+    if message.text == locale.cancel_btn:
         await state.finish()
-        await message.answer(text="Действие отменено", reply_markup=keyboards.menu_kb)
+        await message.answer(text=locale.cancel_ok, reply_markup=helper.menu_kb)
     else:
         if message.text.isnumeric():
             command = "eco give " + helper.temp_nick + " " + message.text
@@ -124,10 +121,10 @@ async def amount_set(message: types.Message, state: FSMContext):
             ) as mcr:
                 resp = mcr.command(command)
                 logger.info(resp)
-            await message.answer(text="Успех ✅ \nИгроку " + helper.temp_nick + " было выдано " + message.text + " $", reply_markup=keyboards.menu_kb)
+            await message.answer(text=locale.success + message.text + " $", reply_markup=helper.menu_kb)
             await state.finish()
         else:
-            await message.answer(text="Неправильный ввод. Введите сумму цифрами 🤑", reply_markup=keyboards.ext_kb)
+            await message.answer(text=locale.err_input_amount, reply_markup=helper.ext_kb)
             await state.set_state(set_donate.wait_money)
 
 # -----------------------------------------------------------------------------------------------------------------------------------
@@ -135,18 +132,18 @@ async def amount_set(message: types.Message, state: FSMContext):
 # -----------------------------------------------------------------------------------------------------------------------------------
 
 
-@dp.message_handler(Text(equals="Забанить игрока ⛔️"))
+@dp.message_handler(Text(equals=locale.ban_btn))
 async def with_puree(message: types.Message, state: FSMContext):
     if message.from_user.id in config.admins_list:
-        await message.answer(text="✍ Введите ник пользователя (через пробел причину бана, не обязательно)", reply_markup=keyboards.ext_kb)
+        await message.answer(text=locale.input_nick_ban, reply_markup=helper.ext_kb)
         await state.set_state(set_donate.wait_ban)
 
 
 @dp.message_handler(state=set_donate.wait_ban)
 async def amount_set(message: types.Message, state: FSMContext):
-    if message.text == "Отмена ❌":
+    if message.text == locale.cancel_btn:
         await state.finish()
-        await message.answer(text="Действие отменено", reply_markup=keyboards.menu_kb)
+        await message.answer(text=locale.cancel_ok, reply_markup=helper.menu_kb)
     else:
         command = "ban " + message.text
         with MCRcon(
@@ -156,7 +153,7 @@ async def amount_set(message: types.Message, state: FSMContext):
         ) as mcr:
             resp = mcr.command(command)
             logger.info(resp)
-        await message.answer(text="Игрок забанен ⛔️", reply_markup=keyboards.menu_kb)
+        await message.answer(text=locale.ban_ok, reply_markup=helper.menu_kb)
         await state.finish()
 
 # -----------------------------------------------------------------------------------------------------------------------------------
@@ -164,18 +161,18 @@ async def amount_set(message: types.Message, state: FSMContext):
 # -----------------------------------------------------------------------------------------------------------------------------------
 
 
-@dp.message_handler(Text(equals="Разбанить игрока ✅"))
+@dp.message_handler(Text(equals=locale.pardon_btn))
 async def with_puree(message: types.Message, state: FSMContext):
     if message.from_user.id in config.admins_list:
-        await message.answer(text="✍ Введите ник пользователя ", reply_markup=keyboards.ext_kb)
+        await message.answer(text=locale.input_nick, reply_markup=helper.ext_kb)
         await state.set_state(set_donate.wait_unban)
 
 
 @dp.message_handler(state=set_donate.wait_unban)
 async def amount_set(message: types.Message, state: FSMContext):
-    if message.text == "Отмена ❌":
+    if message.text == locale.cancel_btn:
         await state.finish()
-        await message.answer(text="Действие отменено", reply_markup=keyboards.menu_kb)
+        await message.answer(text=locale.cancel_ok, reply_markup=helper.menu_kb)
     else:
         command = "pardon " + message.text
         with MCRcon(
@@ -185,7 +182,7 @@ async def amount_set(message: types.Message, state: FSMContext):
         ) as mcr:
             resp = mcr.command(command)
             logger.info(resp)
-        await message.answer(text="Игрок " + message.text + " разбанен ✅", reply_markup=keyboards.menu_kb)
+        await message.answer(text=locale.pardon_ok, reply_markup=helper.menu_kb)
         await state.finish()
 
 # -----------------------------------------------------------------------------------------------------------------------------------
@@ -193,7 +190,7 @@ async def amount_set(message: types.Message, state: FSMContext):
 # -----------------------------------------------------------------------------------------------------------------------------------
 
 
-@dp.message_handler(Text(equals="Перезапустить сервер 🔄"))
+@dp.message_handler(Text(equals=locale.restart_btn))
 async def with_puree(message: types.Message, state: FSMContext):
     if message.from_user.id in config.admins_list:
         command = "reload"
@@ -204,25 +201,25 @@ async def with_puree(message: types.Message, state: FSMContext):
         ) as mcr:
             resp = mcr.command(command)
             logger.info(resp)
-        await message.answer(text="⚠️ ВЫ УВЕРЕНЫ ЧТО ХОТИТЕ ПЕРЕЗАГРУЗИТЬ СЕРВЕР? ⚠️", reply_markup=keyboards.rld_kb)
+        await message.answer(text=locale.rst_warning, reply_markup=helper.rld_kb)
         await state.set_state(set_donate.wait_reload)
 
 
 @dp.message_handler(state=set_donate.wait_reload)
 async def amount_set(message: types.Message, state: FSMContext):
-    if message.text == "Отмена 🟢":
+    if message.text == locale.cancel_rst_btn:
         await state.finish()
-        await message.answer(text="Действие отменено", reply_markup=keyboards.menu_kb)
-    elif message.text == "Да, хочу перезагрузить 🔴":
+        await message.answer(text=locale.cancel_ok, reply_markup=helper.menu_kb)
+    elif message.text == locale.run_rst_btn:
         command = "reload confirm"
-        await message.answer(text="Сервер перезагрузился 🕐", reply_markup=keyboards.menu_kb)
+        await message.answer(text=locale.rst_ok, reply_markup=helper.menu_kb)
         await state.finish()
         with MCRcon(config.rcon_host, config.rcon_pass, config.rcon_port) as mcr:
             resp = mcr.command(command)
             logger.info(resp)
     else:
         await state.finish()
-        await message.answer(text="Действие отменено", reply_markup=keyboards.menu_kb)
+        await message.answer(text=locale.cancel_ok, reply_markup=helper.menu_kb)
 
 # -----------------------------------------------------------------------------------------------------------------------------------
 # --------------------------------------------------- OTHER COMMAND -----------------------------------------------------------------

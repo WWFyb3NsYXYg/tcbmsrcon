@@ -1,6 +1,7 @@
 import os
 from typing import List, Union
 
+language = 'en'  # ua / en / ru
 
 class Configuration:
     token: str
