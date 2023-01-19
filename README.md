@@ -1,49 +1,57 @@
 
 # Telegram control bot for Minecraft server by RCON
   
-## Установка
+## Installation
 
-1. `pip install mcrcon` библиотека Python для управления сервером по протоколу RCON
+1. `pip install mcrcon` Python library for server management via RCON protocol
 
-2. Переменные (файл config.py)
-   * `YOUR_TELEGRAM_BOT_TOKEN` - Токен вашего Telegram бота. Получить [@BotFather](https://telegram.me/BotFather)
+2. Variables (file config.py)
+   * `YOUR_TELEGRAM_BOT_TOKEN` - Token of your Telegram bot. Receive [@BotFather](https://telegram.me/BotFather)
 
-   * `ADMINS_ID` - ID пользователей, имеющих доступ к использованию бота. Если несколько, перечислить через символ `_`. Получить ID можно в [@my_id_bot](https://telegram.me/my_id_bot)
+   * `ADMINS_ID` - ID of users who have access to use the bot. If there are several, list through a symbol `_`. You can get an ID at [@my_id_bot](https://telegram.me/my_id_bot)
 
-   * `IP_MC_SERVER` - IP адресс вашего сервера
+   * `IP_MC_SERVER` - IP address of your server
 
-   * `PASS_RCON` – пароль для RCON подключения. Настраиваеться в файле сервера `server.properties`. [Посмотреть скриншот](https://user-images.githubusercontent.com/87089735/212674626-02da2339-2e61-4bfe-86f0-e0f6b2fd3540.png)
+   * `PASS_RCON` – password for RCON connection. Configurable in the server file `server.properties`. [View screenshot](https://user-images.githubusercontent.com/87089735/212674626-02da2339-2e61-4bfe-86f0-e0f6b2fd3540.png)
 
 
-   * `PASS_PORT` (не обязательно, по умолчанию `25575`) – порт для RCON подключения
+   * `PASS_PORT` (optional, default `25575`) – port for RCON connection
+   *  You can also change the language of the bot. The `language` variable takes the values <img src="https://user-images.githubusercontent.com/87089735/213570989-5be18f9b-fb96-48ae-bb10-ed0b02ac971b.png" height="20px"> `ua`, <img src="https://user-images.githubusercontent.com/87089735/213571353-a9f45178-b7e0-41d0-8148-3241ec9d64b2.png" height="20px"> `en`, `ru`
    
-## Скриншот меню
+## Menu screenshot
+
 
 <p align="center">
-<img src="https://user-images.githubusercontent.com/87089735/212678716-549cd397-6662-4896-a8c8-6895b3d10496.jpg" height="600px">
+<img src="https://user-images.githubusercontent.com/87089735/213577676-aaba8d0f-78ac-48d8-81b4-2637984c82f2.jpg" height="600px">
+<img src="https://user-images.githubusercontent.com/87089735/213576186-c0690668-5733-4968-8062-b4ae79eb620d.jpg" height="600px">
+<img src="https://user-images.githubusercontent.com/87089735/213577822-5d88ff3c-5c52-4af4-af11-f46d6aefd73d.jpg" height="600px">
 <p>
-  
-  
-## Функции
 
-  * `Выдача доната` - посылает команду `lp user NICKNAME parent set DONATE`. 
+  
+## Functions
+
+  * `Issuing a donation` - sends the command `lp user NICKNAME parent set DONATE`. 
     
-    У DONATE есть значения: `admin`, `moder`, `helper`, `moderator`, `yt`, `default`
-
-  * `Выдача валюты игроку` - посылает команду `eco give NICKNAME VALUE`. 
-
-    VALUE в значение принимает только цифры
+    DONATE has meanings: `admin`, `moder`, `helper`, `moderator`, `yt`, `default`. 
     
-  * `Разбанить игрока` - посылает команду `pardon NICKNAME`. 
+    You can add your own privileges or change the configured ones in the file `donations.py`. 
   
-  * `Забанить игрока` - посылает команду `ban NICKNAME`. 
+    To add, separated by commas: ["donate tag for the command","Donation name that will be displayed in the keyboard"].  
 
-    При вводе ника игрока через пробел так же можно ввести причину бана.
+  * `Issuance of currency to the player` - sends the command `eco give NICKNAME VALUE`.
+
+    VALUE accepts only numbers
+    
+  * `Unban a player` - sends the command `pardon NICKNAME`.
+  
+  * `Ban player` - sends the `ban NICKNAME` command.
+
+     When entering a player's nickname separated by a space, you can also enter the reason for the ban.
    
-  * `Перезапустить сервер` - посылает команду `reload`. В следующем пункте при выборе варианта `Да, хочу перезагрузить` будет отправлена команда `reload confirm`
+  * `Restart server` - sends a `reload` command. In the next paragraph, when choosing the option `Yes, I want to restart`, the command `reload confirm` will be sent
   
-  * Остальные команды просто писать в чат с ботом: `say hello`, `//help`. Можно использовать бота в группе. Обращяться тогда так: `/say hi@bot_username`, `//help@bot_username`
+  * Other commands just write to the chat with the bot: `say hello`, `//help`. You can use the bot in a group. Then address like this: `/say hi@bot_username`, `//help@bot_username`
     
 
-## Полезная информация
-* [Заимствованный репозиторий](https://github.com/DavisDmitry/TeleMCRCON)
+## Credits
+  https://github.com/DavisDmitry/TeleMCRCON - sending commands over RCON
