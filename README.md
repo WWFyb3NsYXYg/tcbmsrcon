@@ -54,4 +54,4 @@
     
 
 ## Credits
-  https://github.com/DavisDmitry/TeleMCRCON - sending commands over RCON
+  https://github.com/DavisDmitry/TeleMCRCON
